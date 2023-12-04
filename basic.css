@@ -28,8 +28,20 @@ article > .aside {
     font-size: 0.8em;
 }
 
-img {
+.full-width {
     width: 100%;
+}
+
+.half-width {
+    width: 60%;
+    display: block;
+    margin: 0 auto;
+}
+
+figcaption {
+    text-align: center; /* Center the caption text */
+    font-style: italic; /* Make the caption text italic */
+    margin-top: 8px; /* Add some space between the image and the caption */
 }
 
 .line-numbers a {
@@ -40,7 +52,7 @@ img {
 
 code {
     background: #eee;
-    font-size: 14px;
+    font-size: 12px;
     padding: 2px 5px;
 }
 

@@ -5,14 +5,16 @@
     </head>
     <body>
 <article>
-<h1>Machine Learning the NBA MVP Race</h1>
+<h1>Machine Learning the NBA MVP Race Winner</h1>
 <p>The NBA MVP is selected every year to determine who the "Most Valuable Player"
 during the regular season's 82 games is. The decision is made using a voting system,
 where a group of people cast votes to decide who will win the award.</p>
 
 <figure>
-    <img src="https://images.daznservices.com/di/library/NBA_Global_CMS_image_storage/b5/58/michael-jordan-the-1998-nba-mvp_14kfzv6ve1cd91fsfl67nog2cg.jpeg?t=656406178&quality=80">
+    <img src="https://images.daznservices.com/di/library/NBA_Global_CMS_image_storage/b5/58/michael-jordan-the-1998-nba-mvp_14kfzv6ve1cd91fsfl67nog2cg.jpeg?t=656406178&quality=80" class="full-width">
 </figure>
+
+<h2 id="data-collection">Data Collection</h2>
 
 <p>Since the voter data is made public, we can find out voting information for a
 particular season such as <b>First Place Votes</b>, <b>Points Won</b> and <b>Share</b>.
@@ -26,8 +28,145 @@ I scraped the data using <a href="https://github.com/ybrenning/hoopy">hooPY</a>,
 I wrote for accessing NBA data from basketball reference.</p>
 
 <p>I retrieved MVP data from the past 30 years as well as advanced stats, which I plan on using
-as feature data to train the model.</p>
+as feature data to train the model. I combined the fetched data with an inner join into a single dataframe
+for each season, resulting in the following structure</p>
+
+<figure>
+    <img src="assets/table.png" class="half-width">
+    <figcaption>Head of fetched table from the 2023 season</figcaption>
+</figure>
+
+<blockquote>
+  <p>I have added 'Won' as an additional column for visualization later on, since I will
+  be concatenating all season's tables and will need to keep track of the winners.</p>
+</blockquote>
+
+<p>I will training my model to predict the sixth column, <b>Share</b>, which is the vote share
+calulcated by the number of points a player received (which depends on the amount of votes and
+their respective placements) divided by the total available votes. In short,
+this metric essentially defines who will win the MVP award in a given season.</p>
+
+<h2 id="feature-selection">Feature Selection</h2>
+
+<p>Since I am going to perform a regression, I will take a look at the pairwise correlations
+using the <a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient">Pearson Correlation Coefficient</a>
+first. I have plotted the correlation table using a heatmap for visualization:</p>
+
+<figure>
+    <img src="assets/corr-matrix.png" class="half-width">
+</figure>
+
+<p>In this case, we are interested in the correlations of <b>Share</b> to other features.
+Based on these correlations, I decided to keep the following features to train the model:</p>
+
+<pre><code>stats = [
+    'PTS',
+    'WS',
+    'WS/48',
+    'PER',
+    'TS%',
+    'USG%',
+    'OWS',
+    'DWS',
+    'OBPM',
+    'DBPM',
+    'BPM',
+    'VORP'
+]
+</code></pre>
+
+<p>We can take a look at the scatter plots for the correlations of each of these
+features with the <b>Share</b> stat. The winners for each season are coloured in orange.</p>
+
+<figure>
+    <img src="assets/scatters-1.png" class="half-width">
+</figure>
+<figure>
+    <img src="assets/scatters-2.png" class="half-width">
+</figure>
+
+
+<h2 id="model-selection">Model Selection</h2>
+
+<p>Based on the correlation plots above, it looks like we might even be able to use linear regression
+and get a decent model for this data. First, we have to do same basic data transformation:</p>
+
+<div class="language-javascript highlighter-coderay"><div class="CodeRay">
+  <div class="code"><pre><span class="line-numbers"><a href="#n1" name="n1">1</a></span><span style="color:#080;font-weight:bold">from</span> sklearn.preprocessing <span style="color:#080;font-weight:bold">import</span><span style="background-color:hsla(0,100%,50%,0.05)"></span> scale </span>
+<span class="line-numbers"><a href="#n2" name="n2">2</a></span>X = df[stats].to_numpy()</span></span>
+<span class="line-numbers"><a href="#n3" name="n3">3</a></span>X = scale(X)</span></span>
+<span class="line-numbers"><a href="#n4" name="n4">4</a></span>print(X)</span></span>
+</pre></div>
+</div>
+</div>
+
+<pre><code>array([[ 0.57207554,  1.09736228,  0.97627999, ...,  0.32582557,
+         0.89949827,  1.06205372],
+       [ 0.66770434,  1.52082981,  0.80668369, ...,  2.02849453,
+         0.78155081,  1.41746367],
+       [ 1.91087884,  1.94429734,  1.56986704, ...,  1.25455409,
+         2.2362361 ,  2.63601206],
+       ...,
+       [ 0.45732097, -1.01997536, -1.05887559, ..., -1.45423743,
+        -1.18424011, -1.17195166],
+       [ 0.26606335, -0.62675551, -0.44408901, ..., -1.14466125,
+        -0.63381865, -0.76576887],
+       [ 0.6868301 , -1.44344288, -1.01647652, ..., -0.37072082,
+         0.07386608, -0.61345032]])
+</code></pre>
+
+<p>Training the linear regressor on this data produces the following R² score:</p>
+
+<pre><code>0.4792558660094782
+</code></pre>
+
+<p>Not great. Keep in mind, the <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">
+Coefficient of Determination</a> provides a measure for the goodness of our model's predictions,
+with values closer to 1.0 being better and values closer to 0.0 being worse.</p>
+
+<p>In this case, we can also use <b>accuracy</b> as an evaluation metric, considering the top result
+of our regression output will be labelled as the league MVP for that season. In that case, we can compare
+the predicted MVP to the actual MVP and keep track of how many MVPs our regression predicted correctly, which in 
+this case is the following fraction:</p>
+
+<pre><code>0.6451612903225806
+</code></pre>
+
+<p>Slightly better than R², but still not great. 
+In this case, I decided to train some other models including a Random Forest, Support Vector Machine, Multilayer Perceptron, and two Voting Regressors, which take in multiple regression models and balance their results based on a "vote"
+between the different regressors.</p>
+
+<h2 id="model-evaluation">Model Evaluation</h2>
+
+<p>As a result of training the models, I performed the same evaluation as the Linear Regressor
+on the other models, calculating accuracy and R² scores for each model.
+I decided to plot the results in the following bar chart:</p>
+
+<figure>
+    <img src="assets/scores.png" class="half-width">
+    <figcaption>Accuracy and R² score values for each model</figcaption>
+</figure>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In conclusion, predicting NBA MVPs using a model turns out to be a difficult challenge.
+On one hand, there just isn't a very large amount of relevant data to train from, considering the NBA
+has changed so much since its inception. Using older MVPs might skew the data since the voting criteria might
+have changed in recent years. In addition, the model doesn't consider voter fatigue.
+</p>
+
+<p>
+Some improvements I might add in the future would be potentially using additional (older) data and seeing whether
+that actually worsens the performance of the model. Another stat that might be worth considering for the feature
+selection would be the player's team's win-loss record as well as their team's standings. Optimizing the hyperparameters
+of each model might also result in small improvements.
+</p>
+
+<p>Anyways, I think this could be interesting when looking at the current season and the possible MVP candidates,
+and I will definitely be revisiting this be the end of the season.</p>
 
         </article>
     </body>
 </html>
+
+
