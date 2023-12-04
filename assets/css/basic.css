@@ -38,6 +38,12 @@ article > .aside {
     margin: 0 auto;
 }
 
+.quarter-width {
+    width: 40%;
+    display: block;
+    margin: 0 auto;
+}
+
 figcaption {
     text-align: center; /* Center the caption text */
     font-style: italic; /* Make the caption text italic */

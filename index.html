@@ -157,13 +157,47 @@ on the other models, calculating accuracy and R² scores for each model.
 I decided to plot the results in the following bar chart:</p>
 
 <figure>
-    <img src="assets/images/scores.png" class="half-width">
+    <img src="assets/images/scores.png" class="quarter-width">
     <figcaption>Accuracy and R² score values for each model</figcaption>
 </figure>
 
+<h2 id="testing-models">Testing the models</h2>
+
+<p>Now that we have some trained models, we can take a look at how they approach some recent seasons
+and whether they perform as expected on some concrete examples.</p>
+
+<p>First, let's take a look at the model predictions on the previous season:</p>
+
+<figure>
+    <img src="assets/images/mvp-race-2023.png" class="quarter-width">
+    <figcaption>MVP vote share predictions for the 2023 season</figcaption>
+</figure>
+
+<p>Interestingly, the model seems to be very balanced between the two main MVP candidates, 
+Joel Embiid and Nikola Jokić. In the case of the first Voting Regressor, it even prefers Jokić.
+This is reflected both in their regular season performances, as well as the conversation going on during
+MVP voting at the time, with many people saying Jokić had a solid case for winning the award.</p>
+
+<p>Another interesting season to look at might be the 2016 season, with Stephen Curry being the 
+<a href="https://www.espn.com/nba/story/_/id/15499690/stephen-curry-golden-state-warriors-first-unanimous-most-valuable-player">first and only unanimous MVP</a>. Will the model give him a similarly high vote share? Here are the results:</p>
+
+<figure>
+    <img src="assets/images/mvp-race-2016.png" class="quarter-width">
+    <figcaption>MVP vote share predictions for the 2016 season</figcaption>
+</figure>
+
+<p>It seems the models do a pretty good job of predicting Steph with a good level of certainty in this case.</p>
+
+<blockquote>
+    <p>Note that some of the models tend to predict negative values in some cases where the predicted share
+    would be very low. This may be caused by overfitting -- in these cases, I have decided to set zero
+    as the share's lower bound for visualization purposes.
+    </p>
+</blockquote>
+
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In conclusion, predicting NBA MVPs using a model turns out to be a difficult challenge.
+<p>In conclusion, predicting NBA MVPs using machine learning turns out to be a bit of a challenge.
 On one hand, there just isn't a very large amount of relevant data to train from, considering the NBA
 has changed so much since its inception. Using older MVPs might skew the data since the voting criteria is 
 decided by the always-changing panel of voters and may change over the years. 
