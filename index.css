@@ -1,0 +1,36 @@
+article {
+    display: grid;
+    /* I'm using 440px instead of 740px as it makes it easier to view it in the Scrimba simulator additive-symbols: */
+    grid-template-columns: 1fr 1fr 10px 740px 10px 1fr 1fr;
+}
+
+article > * {
+    grid-column: 4;
+}
+
+article > figure {
+    grid-column: 1 / -1;
+    margin: 20px 0;
+}
+
+article > .aside {
+    grid-column: 5 / -1;
+}
+
+article > blockquote {
+    font-size: 16px;
+    grid-column: 3 / span 2;
+    margin: 0px 0;
+    color: #666;
+    border-left: 3px solid black;
+    padding-left: 10px;
+}
+
+/* General styling */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+}
+

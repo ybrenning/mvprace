@@ -1,12 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title></title>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link href="css/style.css" rel="stylesheet">
-	</head>
-	<body>
-		Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.
-	</body>
+<html>
+    <head>
+        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="basic.css">
+    </head>
+    <body>
+<article>
+<h1>Machine Learning the NBA MVP Race</h1>
+<p>The NBA MVP is selected every year to determine who the "Most Valuable Player"
+during the regular season's 82 games is. The decision is made using a voting system,
+where a group of people cast votes to decide who will win the award.</p>
+
+<figure>
+    <img src="https://images.daznservices.com/di/library/NBA_Global_CMS_image_storage/b5/58/michael-jordan-the-1998-nba-mvp_14kfzv6ve1cd91fsfl67nog2cg.jpeg?t=656406178&quality=80">
+</figure>
+
+<p>Since the voter data is made public, we can find out voting information for a
+particular season such as <b>First Place Votes</b>, <b>Points Won</b> and <b>Share</b>.
+Ideally, we could use some of this data as an output to train a regression model on,
+such that our model can predict the votes each player in the MVP race gets for a given season and thus, 
+who will become that season's league MVP.</p>
+
+<p>This data is available on <a href="https://www.basketball-reference.com">Basketball Reference</a>
+for every season since the award's existence (as well as additional player and team data).
+I scraped the data using <a href="https://github.com/ybrenning/hoopy">hooPY</a>, a simple Python CLI tool
+I wrote for accessing NBA data from basketball reference.</p>
+
+<p>I retrieved MVP data from the past 30 years as well as advanced stats, which I plan on using
+as feature data to train the model.</p>
+
+        </article>
+    </body>
 </html>
