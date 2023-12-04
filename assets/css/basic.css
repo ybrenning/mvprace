@@ -39,6 +39,7 @@ article > .aside {
 }
 
 .quarter-width {
+    height: auto;
     width: 40%;
     display: block;
     margin: 0 auto;
