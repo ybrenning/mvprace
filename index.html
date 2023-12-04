@@ -8,7 +8,13 @@
 <h1>Machine Learning the NBA MVP Race Winner</h1>
 <p>The NBA MVP is selected every year to determine who the "Most Valuable Player"
 during the regular season's 82 games is. The decision is made using a voting system,
-where a group of people cast votes to decide who will win the award.</p>
+where a panel of sportswriters and broadcasters cast votes to decide who will win the award.</p>
+
+<p>The recipient of the award is typically chosen based on factors such as their
+individual statistics, team success and impact on the game. As such, the end of the season
+usually has a select few candidates for the title that exhibit these characteristics.
+But could we train a machine learning model to learn what player will be named MVP for a given season?
+</p>
 
 <figure>
     <img src="https://images.daznservices.com/di/library/NBA_Global_CMS_image_storage/b5/58/michael-jordan-the-1998-nba-mvp_14kfzv6ve1cd91fsfl67nog2cg.jpeg?t=656406178&quality=80" class="full-width">
@@ -18,18 +24,18 @@ where a group of people cast votes to decide who will win the award.</p>
 
 <p>Since the voter data is made public, we can find out voting information for a
 particular season such as <b>First Place Votes</b>, <b>Points Won</b> and <b>Share</b>.
-Ideally, we could use some of this data as an output to train a regression model on,
-such that our model can predict the votes each player in the MVP race gets for a given season and thus, 
+Ideally, we could use some of this data as output values to train a regression model on,
+such that our model can predict the votes each player in the MVP race gets for a given season and as a result, 
 who will become that season's league MVP.</p>
 
 <p>This data is available on <a href="https://www.basketball-reference.com">Basketball Reference</a>
 for every season since the award's existence (as well as additional player and team data).
 I scraped the data using <a href="https://github.com/ybrenning/hoopy">hooPY</a>, a simple Python CLI tool
-I wrote for accessing NBA data from basketball reference.</p>
+I wrote for accessing all types of NBA data.</p>
 
 <p>I retrieved MVP data from the past 30 years as well as advanced stats, which I plan on using
 as feature data to train the model. I combined the fetched data with an inner join into a single dataframe
-for each season, resulting in the following structure</p>
+for each season, resulting in the following table structure:</p>
 
 <figure>
     <img src="assets/images/table.png" class="half-width">
@@ -38,17 +44,17 @@ for each season, resulting in the following structure</p>
 
 <blockquote>
   <p>I have added 'Won' as an additional column for visualization later on, since I will
-  be concatenating all season's tables and will need to keep track of the winners.</p>
+  be concatenating all season's dataframes into one and will need to keep track of the winners.</p>
 </blockquote>
 
-<p>I will training my model to predict the sixth column, <b>Share</b>, which is the vote share
-calulcated by the number of points a player received (which depends on the amount of votes and
+<p>I will be training my model to predict the sixth column, <b>Share</b>, which is 
+calculated by the number of points a player received (which depends on the amount of votes and
 their respective placements) divided by the total available votes. In short,
 this metric essentially defines who will win the MVP award in a given season.</p>
 
 <h2 id="feature-selection">Feature Selection</h2>
 
-<p>Since I am going to perform a regression, I will take a look at the pairwise correlations
+<p>Since I am going to perform a regression, I will first take a look at the pairwise correlations
 using the <a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient">Pearson Correlation Coefficient</a>
 first. I have plotted the correlation table using a heatmap for visualization:</p>
 
@@ -56,27 +62,29 @@ first. I have plotted the correlation table using a heatmap for visualization:</
     <img src="assets/images/corr-matrix.png" class="half-width">
 </figure>
 
-<p>In this case, we are interested in the correlations of <b>Share</b> to other features.
+<p>In this case, we are interested in the correlations of <b>Share</b> with other features.
 Based on these correlations, I decided to keep the following features to train the model:</p>
 
-<pre><code>stats = [
-    'PTS',
-    'WS',
-    'WS/48',
-    'PER',
-    'TS%',
-    'USG%',
-    'OWS',
-    'DWS',
-    'OBPM',
-    'DBPM',
-    'BPM',
-    'VORP'
-]
-</code></pre>
+<ul>
+  <li>PTS (points per game)</li>
+  <li>WS <a href="https://www.reddit.com/r/nba/comments/b6nn5d/explaining_and_calculating_win_shares/">(win shares)</a></li>
+  <li>WS/48 (win shares per 48 minutes)</li>
+  <li>TS% <a href="https://www.basketball-reference.com/about/ws.html">(true shooting percentage)</a></li>
+  <li>USG% (usage percentage)</li>
+  <li>OWS (offensive win shares)</li>
+  <li>DWS (defensive win shares)</li>
+  <li>OBPM (offensive box plus/minus)</li>
+  <li>DBPM (defensive box plus/minus)</li>
+  <li>BPM <a href="https://www.basketball-reference.com/about/bpm2.html">(box plus/minus)</a></li>
+  <li>VORP (value over replacement player)</li>
+</ul>
+
+<p>Note that defensive stats such as blocks and steals don't seem to have much of an impact
+on the resulting vote share. Even the more general advanced defensive stats like DBPM, although they have more
+of an impact on the share, correlate less than their offensive counterparts.</p>
 
 <p>We can take a look at the scatter plots for the correlations of each of these
-features with the <b>Share</b> stat. The winners for each season are coloured in orange.</p>
+features with the <b>Share</b> stat. The MVP winners for each season are coloured in orange.</p>
 
 <figure>
     <img src="assets/images/scatters-1.png" class="half-width">
@@ -115,17 +123,19 @@ and get a decent model for this data. First, we have to do same basic data trans
          0.07386608, -0.61345032]])
 </code></pre>
 
-<p>Training the linear regressor on this data produces the following R² score:</p>
+<p>For ease of use, I have decided to go with the model implementation from
+Scikit-Learn. Training the linear regressor on this data produces the following R² score:</p>
 
 <pre><code>0.4792558660094782
 </code></pre>
 
-<p>Not great. Keep in mind, the <a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">
+<p>Not great. Keep in mind, the R² score, known as the 
+<a href="https://en.wikipedia.org/wiki/Coefficient_of_determination">
 Coefficient of Determination</a> provides a measure for the goodness of our model's predictions,
-with values closer to 1.0 being better and values closer to 0.0 being worse.</p>
+with values closer to 1.0 being better and values closer to 0.0 being worse model performances.</p>
 
-<p>In this case, we can also use <b>accuracy</b> as an evaluation metric, considering the top result
-of our regression output will be labelled as the league MVP for that season. In that case, we can compare
+<p>In this case, we can also use <b>accuracy</b> as an evaluation metric, considering the <code>argmax</code> result
+of our regression output would theoretically be labelled as the league MVP for that season. In that case, we can compare
 the predicted MVP to the actual MVP and keep track of how many MVPs our regression predicted correctly, which in 
 this case is the following fraction:</p>
 
@@ -133,12 +143,16 @@ this case is the following fraction:</p>
 </code></pre>
 
 <p>Slightly better than R², but still not great. 
-In this case, I decided to train some other models including a Random Forest, Support Vector Machine, Multilayer Perceptron, and two Voting Regressors, which take in multiple regression models and balance their results based on a "vote"
-between the different regressors.</p>
+In this case, I decided to train some other regression models including a Random Forest, Support Vector Machine, Multilayer Perceptron, and two Voting Regressors, which take in multiple regression models and average out their predictions.</p>
+
+<p>The first Voting Regressor consists of a Linear Regressor, Random Forest and K-Neighbours Regressor.
+The second consists of a Gradient Boosting Regressor, Random Forest and Linear Regressor.
+The Voting Regressors as well as the hyperparameters for the other models can be found in the notebook of 
+<a href="https://github.com/ybrenning/mvprace">this page's source code</a>.</p>
 
 <h2 id="model-evaluation">Model Evaluation</h2>
 
-<p>As a result of training the models, I performed the same evaluation as the Linear Regressor
+<p>After training the models, I performed the same simple evaluation from earlier
 on the other models, calculating accuracy and R² scores for each model.
 I decided to plot the results in the following bar chart:</p>
 
@@ -151,19 +165,20 @@ I decided to plot the results in the following bar chart:</p>
 
 <p>In conclusion, predicting NBA MVPs using a model turns out to be a difficult challenge.
 On one hand, there just isn't a very large amount of relevant data to train from, considering the NBA
-has changed so much since its inception. Using older MVPs might skew the data since the voting criteria might
-have changed in recent years. In addition, the model doesn't consider voter fatigue.
+has changed so much since its inception. Using older MVPs might skew the data since the voting criteria is 
+decided by the always-changing panel of voters and may change over the years. 
+In addition, my approach doesn't consider "voter fatigue" and its possible effect on the MVP race.
 </p>
 
 <p>
-Some improvements I might add in the future would be potentially using additional (older) data and seeing whether
-that actually worsens the performance of the model. Another stat that might be worth considering for the feature
-selection would be the player's team's win-loss record as well as their team's standings. Optimizing the hyperparameters
-of each model might also result in small improvements.
+Some improvements I might add in the future would be potentially using additional (older) data from seasons pre-'93 
+and seeing how that affects the models. Another stat that might be worth considering for the feature
+selection would be the player's team's win-loss record as well as the team's overall standings. 
+Further optimizing the hyperparameters of each model might also be worth looking into.
 </p>
 
 <p>Anyways, I think this could be interesting when looking at the current season and the possible MVP candidates,
-and I will definitely be revisiting this be the end of the season.</p>
+and I will most likely be revisiting this project after the 2024/25 season.</p>
 
         </article>
     </body>
